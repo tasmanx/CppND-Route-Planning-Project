@@ -1,6 +1,10 @@
 #include "route_planner.h"
 #include <algorithm>
 
+using std::sort;
+using std::vector;
+using std::reverse;
+
 RoutePlanner::RoutePlanner(RouteModel &model, float start_x, float start_y, float end_x, float end_y): m_Model(model) {
     // Convert inputs to percentage:
     start_x *= 0.01;
@@ -49,24 +53,31 @@ RouteModel::Node *RoutePlanner::NextNode() {
   return next_node;
 }
 
-// TODO 6: Complete the ConstructFinalPath method to return the final path found from your A* search.
-// Tips:
-// - This method should take the current (final) node as an argument and iteratively follow the 
-//   chain of parents of nodes until the starting node is found.
-// - For each node in the chain, add the distance from the node to its parent to the distance variable.
-// - The returned vector should be in the correct order: the start node should be the first element
-//   of the vector, the end node should be the last element.
+// Function to return the final path found from A* search*/
+vector<RouteModel::Node> RoutePlanner::ConstructFinalPath(RouteModel::Node *current_node) {
+  // Create path_found vector
+  distance = 0.0f;
+  vector<RouteModel::Node> path_found;
+  RouteModel::Node parent_node;
 
-std::vector<RouteModel::Node> RoutePlanner::ConstructFinalPath(RouteModel::Node *current_node) {
-    // Create path_found vector
-    distance = 0.0f;
-    std::vector<RouteModel::Node> path_found;
+  // Iterate threw the chain of parents of nodes until the starting node is found (parent == nullptr)
+  while (current_node->parent != nullptr) {
+    path_found.push_back(*current_node);
+    parent_node = *(current_node->parent);
+    distance += current_node->distance(parent_node);
+    current_node = current_node->parent;
+  }
 
-    // TODO: Implement your solution here.
+  // Add last node (init point) to the path
+  path_found.push_back(*current_node);
 
-    distance *= m_Model.MetricScale(); // Multiply the distance by the scale of the map to get meters.
-    return path_found;
+  // Reverse vector to correct nodes order
+  reverse(path_found.begin(), path_found.end());
 
+  // Multiply the distance by the scale of the map to get meters
+  distance *= m_Model.MetricScale();
+
+  return path_found;
 }
 
 
